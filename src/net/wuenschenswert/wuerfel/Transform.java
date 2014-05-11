@@ -1,33 +1,33 @@
 package net.wuenschenswert.wuerfel;
 
 /**
- * integer matrix multiplication from 2D into 3D points, with translation.
+ * integer matrix multiplication from 2D into 3D points, with prior translation to the bottom.
  */
 public class Transform {
-    final int xx,xy,xt,yx,yy,yt,zx,zy,zt;
-    public int transformX(int x, int y) {
-        return xx*x+xy*y+xt;
+    final int xx,xy,xz,yx,yy,yz,zx,zy,zz;
+    public int transformX(int x, int y, int z) {
+        return xx*x+xy*y+xz*z;
     }
-    public int transformY(int x, int y) {
-        return yx*x+yy*y+yt;
+    public int transformY(int x, int y, int z) {
+        return yx*x+yy*y+yz*z;
     }
-    public int transformZ(int x, int y) {
-        return zx*x+zy*y+zt;
+    public int transformZ(int x, int y, int z) {
+        return zx*x+zy*y+zz*z;
     }
 
-    public Transform(int xx, int xy, int xt, int yx, int yy, int yt, int zx, int zy, int zt) {
+    public Transform(int xx, int xy, int xz, int yx, int yy, int yz, int zx, int zy, int zz) {
         this.xx = xx;
         this.xy = xy;
-        this.xt = xt;
+        this.xz = xz;
         this.yx = yx;
         this.yy = yy;
-        this.yt = yt;
+        this.yz = yz;
         this.zx = zx;
         this.zy = zy;
-        this.zt = zt;
+        this.zz = zz;
     }
 
     public Point3D transform(Point2D p2d) {
-        return new Point3D(transformX(p2d.getX(), p2d.getY()),transformY(p2d.getX(), p2d.getY()),transformZ(p2d.getX(), p2d.getY()));
+        return new Point3D(transformX(p2d.getX(), p2d.getY(),-2),transformY(p2d.getX(), p2d.getY(),-2),transformZ(p2d.getX(), p2d.getY(),-2));
     }
 }

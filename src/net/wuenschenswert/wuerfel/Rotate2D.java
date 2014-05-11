@@ -31,4 +31,14 @@ public class Rotate2D {
             new Rotate2D(-1, 0, 0, -1),
             new Rotate2D(0, 1, -1, 0)
     ));
+    public static final List<Rotate2D> DEG_0_90_180_270_AND_FLIPPED = Collections.unmodifiableList(Arrays.asList(
+            new Rotate2D( 1, 0, 0, 1),
+            new Rotate2D( 0,-1, 1, 0),
+            new Rotate2D(-1, 0, 0,-1),
+            new Rotate2D( 0, 1,-1, 0),
+            new Rotate2D(-1, 0, 0, 1),
+            new Rotate2D( 0,-1,-1, 0),
+            new Rotate2D( 1, 0, 0,-1),
+            new Rotate2D( 0, 1, 1, 0)
+    ));
 }

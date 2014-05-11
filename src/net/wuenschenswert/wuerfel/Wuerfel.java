@@ -23,12 +23,12 @@ public class Wuerfel {
                 "xxxx ",
                 " x x "
                 ));
-        plates.add(new PlateImpl('b',
-                "xxx  ",
-                " xxx ",
-                "xxxxx",
-                " xxx ",
-                " x xx"
+        plates.add(new PlateImpl('f',
+                " x x ",
+                "xxxx ",
+                " xxxx",
+                "xxxx ",
+                "  x  "
                 ));
         plates.add(new PlateImpl('c',
                 "xx   ",
@@ -36,6 +36,13 @@ public class Wuerfel {
                 "xxxx ",
                 " xxxx",
                 " x x "
+                ));
+        plates.add(new PlateImpl('b',
+                "xxx  ",
+                " xxx ",
+                "xxxxx",
+                " xxx ",
+                " x xx"
                 ));
         plates.add(new PlateImpl('d',
                 "x x x",
@@ -51,35 +58,35 @@ public class Wuerfel {
                 " xxx ",
                 " x x "
                 ));
-        plates.add(new PlateImpl('f',
-                " x x ",
-                "xxxx ",
-                " xxxx",
-                "xxxx ",
-                "  x  "
-                ));
         new Wuerfel(plates).solve();
     }
 
     public void solve() {
         List<Plate> unusedPlates = new ArrayList<Plate>(plates);
+        // place the first plate unrotated at the bottom.
+        // no conflict possible, nothing to regret later.
         CubeSide side = CubeSide.values()[0];
-        solve(side, unusedPlates);
+        Plate plate = unusedPlates.remove(0);
+        setPlate(plate, side, true);
+        dumpCube();
+        // then solve the rest.
+        solve(next(side), unusedPlates);
     }
 
     private void solve(CubeSide side, List<Plate> unusedPlates) {
         System.out.println("(enter "+side+" with unused plates "+unusedPlates);
         for(Plate plate: unusedPlates) {
             int deg=0;
-            for(Rotate2D rotate: Rotate2D.DEG_0_90_180_270) {
+            for(Rotate2D rotate: Rotate2D.DEG_0_90_180_270_AND_FLIPPED) {
                 RotatedPlate rotatedPlate = new RotatedPlate(plate, rotate);
                 if(plateFits(rotatedPlate, side)) {
-                    System.out.println("Plate "+plate.getName()+" fits into "+side+" at "+deg+" degrees");
+                    System.out.println("Plate "+plate.getName()+" fits into "+side+" at "+(deg%360)+" degrees"+(deg>=360?" flipped":""));
                     setPlate(rotatedPlate, side, true);
                     if(isLast(side)) {
                         assert unusedPlates.size() == 1;
                         solution();
                     } else {
+                        // debug:
                         dumpCube();
                         CubeSide nextSide = next(side);
                         List<Plate> nextUnusedPlates = new ArrayList<Plate>(unusedPlates);
@@ -147,12 +154,14 @@ public class Wuerfel {
 
     void setPlate(Plate plate, CubeSide side, boolean doSet) {
         Transform t = TRANSFORM_FOR_CUBE_SIDE.get(side);
-        for(Point2D point: PLATE_RIM) {
-            if(plate.isSet(point)) {
-                cube.set(t.transform(point), doSet ? plate : null);
+        for(int x=-2;x<=2;++x) {
+            for(int y=-2;y<=2;++y) {
+                Point2D point = new Point2D(x,y);
+                if(plate.isSet(point)) {
+                    cube.set(t.transform(point), doSet ? plate : null);
+                }
             }
         }
-        cube.set(t.transform(new Point2D(0,0)), doSet ? plate : null);
     }
 
     static final List<Point2D> PLATE_RIM = computeRim();
@@ -179,30 +188,30 @@ public class Wuerfel {
     static public final Transform TRANSFORM_BOTTOM = new Transform(
             1, 0, 0,
             0, 1, 0,
-            0, 0,-2
+            0, 0, 1
     );
     static public final Transform TRANSFORM_TOP = new Transform(
-            1, 0, 0,
+           -1, 0, 0,
             0, 1, 0,
-            0, 0, 2
+            0, 0,-1
     );
     static public final Transform TRANSFORM_FRONT = new Transform(
             1, 0, 0,
-            0, 0,-2,
-            0, 1, 0
+            0, 0, 1,
+            0,-1, 0
     );
     static public final Transform TRANSFORM_BACK = new Transform(
             1, 0, 0,
-            0, 0, 2,
+            0, 0,-1,
             0, 1, 0
     );
     static public final Transform TRANSFORM_LEFT = new Transform(
-            0, 0,-2,
+            0, 0, 1,
             0, 1, 0,
-            1, 0, 0
+           -1, 0, 0
     );
     static public final Transform TRANSFORM_RIGHT = new Transform(
-            0, 0, 2,
+            0, 0,-1,
             0, 1, 0,
             1, 0, 0
     );
