@@ -1,0 +1,96 @@
+<html>
+<head><title>My first Three.js app</title>
+    <style>canvas { width: 100%; height: 100% }</style>
+</head>
+<body>
+<script src="js/three.min.js"></script>
+<script src="js/jigsaw.js"></script>
+ <script>
+     function webgl_detect(return_context)
+     {
+         if (!!window.WebGLRenderingContext) {
+             var canvas = document.createElement("canvas"),
+                  names = ["webgl", "experimental-webgl", "moz-webgl", "webkit-3d"],
+                context = false;
+
+             for(var i=0;i<4;i++) {
+                 try {
+                     context = canvas.getContext(names[i]);
+                     if (context && typeof context.getParameter == "function") {
+                         // WebGL is enabled
+                         if (return_context) {
+                             // return WebGL object if the function's argument is present
+                             return {name:names[i], gl:context};
+                         }
+                         // else, return just true
+                         return true;
+                     }
+                 } catch(e) {}
+             }
+
+             // WebGL is supported, but disabled
+             return false;
+         }
+
+         // WebGL not supported
+         return false;
+     }
+ </script>
+<script>
+    var scene, camera, renderer;
+    var geometry, material, mesh, mesh2;
+
+    init();
+    animate();
+
+    function init() {
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+        camera.position.z = 1000;
+
+        geometry = new THREE.JigsawGeometry( 200, 200, 40, 5, 5, [
+          " xxx ",
+          "xxxx ",
+          " xxxx",
+          "xxxx ",
+          "x  x "
+        ] );
+        material = new THREE.MeshBasicMaterial( { color: 0xffff00, wireframe: false } );
+        mesh = new THREE.Mesh( geometry, material );
+
+        scene.add( mesh );
+
+        material2 = new THREE.MeshBasicMaterial( { color: 0x0000ff, wireframe: true } );
+        mesh2 = new THREE.Mesh( geometry, material2 );
+
+        scene.add( mesh2 );
+
+        if (webgl_detect())
+        	renderer = new THREE.WebGLRenderer();
+        else
+        	renderer = new THREE.CanvasRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        document.body.appendChild( renderer.domElement );
+
+    }
+
+    function animate() {
+
+        // note: three.js includes requestAnimationFrame shim
+        requestAnimationFrame( animate );
+
+        mesh.rotation.x += 0.01;
+        mesh.rotation.y += 0.02;
+
+        mesh2.rotation.x += 0.01;
+        mesh2.rotation.y += 0.02;
+
+        renderer.render( scene, camera );
+
+    }
+ </script>
+</body>
+</html>
