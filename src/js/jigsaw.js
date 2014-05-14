@@ -23,6 +23,8 @@ THREE.JigsawGeometry = function ( width, height, depth, widthSegments, heightSeg
 	this.heightSegments = heightSegments || jigsaw.length;
 	this.widthSegments = widthSegments || jigsaw[0].length;
 
+    this.jigsaw = jigsaw;
+
     // TODO: check jigsaw string lengths
 
 	var scope = this;
@@ -33,10 +35,48 @@ THREE.JigsawGeometry = function ( width, height, depth, widthSegments, heightSeg
 
 	buildPlane( width, height, depth_half, 4 ); // pz
 	buildPlane( width, height, - depth_half, 5 ); // nz
- 	// buildPlane( 'z', 'y', - 1, - 1, depth, height, width_half, 0 ); // px
- 	// buildPlane( 'z', 'y',   1, - 1, depth, height, - width_half, 1 ); // nx
- 	// buildPlane( 'x', 'z',   1,   1, width, depth, height_half, 2 ); // py
- 	// buildPlane( 'x', 'z',   1, - 1, width, depth, - height_half, 3 ); // ny
+ 	buildSide( 'y', 'x',   1, - 1, this.heightSegments, this.widthSegments,  0 ); // px
+ 	buildSide( 'y', 'x', - 1,   1, this.heightSegments, this.widthSegments,  1 ); // nx
+ 	buildSide( 'x', 'y', - 1, - 1, this.widthSegments,  this.heightSegments, 2 ); // py
+ 	buildSide( 'x', 'y',   1,   1, this.widthSegments,  this.heightSegments, 3 ); // ny
+
+    function buildSide( u, v, udir, vdir, gridU, gridV, materialIndex ) {
+
+		var normal = new THREE.Vector3();
+		normal[v] = vdir;
+
+        var iu,iv,pos={ },off= { };
+        off[u] = udir > 0 ? 0 : -1;
+        off[v] = vdir > 0 ? 0 : -1;
+        for(iu=0;iu<gridU;++iu) {
+            pos[u]= udir > 0 ? iu : gridU-iu;
+            for(iv=0;iv<gridV;++iv) {
+                pos[v]= vdir > 0 ? iv : gridV-iv;
+                if (jigsaw[scope.heightSegments-1-pos.y-off.y][pos.x+off.x]!==' ') {
+                    var a = verticeIndex(pos.x,pos.y,false),
+                        b = verticeIndex(pos.x,pos.y,true);
+                    pos[u] += udir;
+                    var c = verticeIndex(pos.x,pos.y,true),
+                        d = verticeIndex(pos.x,pos.y,false);
+                    pos[u] -= udir;
+
+                    var uva = new THREE.Vector2( iu / gridU, 1 );
+                    var uvb = new THREE.Vector2( iu / gridU, 0 );
+                    var uvc = new THREE.Vector2( ( iu + 1 ) / gridU, 0 );
+                    var uvd = new THREE.Vector2( ( iu + 1 ) / gridU, 1 );
+
+                    makeSquare(a,b,c,d,uva,uvb,uvc,uvd,normal,materialIndex);
+
+                    // TODO: add additional side surfaces in case of inner holes
+                    break;
+                }
+            }
+        }
+    }
+
+    function verticeIndex(ix,iy,isNZ) {
+        return iy*(scope.widthSegments+1) + ix + (isNZ ? (scope.widthSegments+1)*(scope.heightSegments+1) : 0);
+    }
 
 	function buildPlane( width, height, depth, materialIndex ) {
 
@@ -92,27 +132,31 @@ THREE.JigsawGeometry = function ( width, height, depth, widthSegments, heightSeg
                   var uvt = uvb; uvb = uvd; uvd = uvt;
                 }
 
-				var face = new THREE.Face3( a + offset, b + offset, d + offset );
-				face.normal.copy( normal );
-				face.vertexNormals.push( normal.clone(), normal.clone(), normal.clone() );
-				face.materialIndex = materialIndex;
-
-				scope.faces.push( face );
-				scope.faceVertexUvs[ 0 ].push( [ uva, uvb, uvd ] );
-
-				face = new THREE.Face3( b + offset, c + offset, d + offset );
-				face.normal.copy( normal );
-				face.vertexNormals.push( normal.clone(), normal.clone(), normal.clone() );
-				face.materialIndex = materialIndex;
-
-				scope.faces.push( face );
-				scope.faceVertexUvs[ 0 ].push( [ uvb.clone(), uvc, uvd.clone() ] );
+                makeSquare(a+offset,b+offset,c+offset,d+offset,uva,uvb,uvc,uvd,normal,materialIndex);
 
 			}
 
 		}
 
 	}
+
+    function makeSquare(a,b,c,d,uva,uvb,uvc,uvd,normal,materialIndex) {
+        var face = new THREE.Face3( a, b, d );
+        face.normal.copy( normal );
+        face.vertexNormals.push( normal.clone(), normal.clone(), normal.clone() );
+        face.materialIndex = materialIndex;
+
+        scope.faces.push( face );
+        scope.faceVertexUvs[ 0 ].push( [ uva, uvb, uvd ] );
+
+        face = new THREE.Face3( b, c, d );
+        face.normal.copy( normal );
+        face.vertexNormals.push( normal.clone(), normal.clone(), normal.clone() );
+        face.materialIndex = materialIndex;
+
+        scope.faces.push( face );
+        scope.faceVertexUvs[ 0 ].push( [ uvb.clone(), uvc, uvd.clone() ] );
+    }
 
 	this.mergeVertices();
 

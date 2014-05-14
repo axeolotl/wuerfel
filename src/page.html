@@ -77,10 +77,27 @@
 
     }
 
+    var pause = false;
+
+    function pauseResume(event) {
+      if(event.which === 32) {
+          if(pause) {
+            pause = false;
+            requestAnimationFrame( animate );
+          } else {
+            pause = true;
+          }
+          event.preventDefault();
+      }
+    }
+
+    window.addEventListener( "keydown", pauseResume.bind( this ), false );
+
     function animate() {
 
-        // note: three.js includes requestAnimationFrame shim
-        requestAnimationFrame( animate );
+        if(!pause) {
+            requestAnimationFrame( animate );
+        }
 
         mesh.rotation.x += 0.01;
         mesh.rotation.y += 0.02;
