@@ -50,9 +50,11 @@ THREE.JigsawGeometry = function ( width, height, depth, widthSegments, heightSeg
         off[v] = vdir > 0 ? 0 : -1;
         for(iu=0;iu<gridU;++iu) {
             pos[u]= udir > 0 ? iu : gridU-iu;
+            var onBlank = true;
             for(iv=0;iv<gridV;++iv) {
                 pos[v]= vdir > 0 ? iv : gridV-iv;
-                if (jigsaw[scope.heightSegments-1-pos.y-off.y][pos.x+off.x]!==' ') {
+                if (onBlank && jigsaw[scope.heightSegments-1-pos.y-off.y][pos.x+off.x]!==' ') {
+                    // change from blank to filled. Add surface.
                     var a = verticeIndex(pos.x,pos.y,false),
                         b = verticeIndex(pos.x,pos.y,true);
                     pos[u] += udir;
@@ -67,8 +69,9 @@ THREE.JigsawGeometry = function ( width, height, depth, widthSegments, heightSeg
 
                     makeSquare(a,b,c,d,uva,uvb,uvc,uvd,normal,materialIndex);
 
-                    // TODO: add additional side surfaces in case of inner holes
-                    break;
+                    onBlank = false;
+                } else if (!onBlank && jigsaw[scope.heightSegments-1-pos.y-off.y][pos.x+off.x]===' ') {
+                    onBlank = true;
                 }
             }
         }
